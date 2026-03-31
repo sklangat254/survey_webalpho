@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Paid AI Survey Kenya</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green:#16a34a; --green-bg:#f0fdf4; --orange:#f97316;
+    --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-400:#9ca3af;
+    --gray-600:#4b5563; --gray-800:#1f2937;
+    --shadow:0 2px 16px rgba(0,0,0,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Plus Jakarta Sans',sans-serif;background:#f5f5f5;display:flex;justify-content:center;min-height:100vh;}
+  .app{width:100%;max-width:430px;min-height:100vh;background:white;position:relative;overflow:hidden;}
+
+  /* PAGE SYSTEM */
+  .page{display:none;min-height:100vh;flex-direction:column;}
+  .page.active{display:flex;}
+
+  /* LOADER */
+  .loader-overlay{
+    position:fixed;inset:0;background:rgba(255,255,255,0.88);
+    display:none;align-items:center;justify-content:center;
+    z-index:9999;backdrop-filter:blur(2px);
+  }
+  .loader-overlay.show{display:flex;}
+  .spinner{
+    width:52px;height:52px;
+    border:4px solid var(--gray-200);
+    border-top-color:var(--green);
+    border-radius:50%;
+    animation:spin 0.75s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* SHARED GREEN HEADER */
+  .green-header{
+    background:var(--green);padding:14px 16px;
+    display:flex;align-items:center;gap:10px;flex-shrink:0;
+  }
+  .green-header span{color:white;font-weight:700;font-size:16px;}
+  .back-lnk{color:white;font-size:14px;font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;}
+
+  /* ===== LANDING ===== */
+  #page-landing{background:var(--green-bg);}
+  .landing-body{flex:1;padding:40px 24px 32px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .big-check{
+    width:80px;height:80px;background:var(--green);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:28px;box-shadow:0 6px 24px rgba(22,163,74,0.35);
+  }
+  .big-check svg{width:44px;height:44px;stroke:white;fill:none;stroke-width:3;}
+  .landing-body h1{font-size:28px;font-weight:800;color:var(--gray-800);line-height:1.2;margin-bottom:12px;}
+  .landing-body .hero-sub{font-size:14px;color:var(--gray-600);line-height:1.6;margin-bottom:32px;max-width:280px;}
+  .btn-green{
+    width:100%;padding:16px;background:var(--green);color:white;
+    border:none;border-radius:12px;font-size:15px;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    margin-bottom:12px;font-family:inherit;
+  }
+  .btn-outline{
+    width:100%;padding:14px;background:transparent;color:var(--green);
+    border:2px solid var(--green);border-radius:12px;font-size:15px;font-weight:700;
+    cursor:pointer;font-family:inherit;margin-bottom:20px;
+  }
+  .bonus-txt{font-size:13px;color:var(--gray-600);margin-bottom:40px;}
+  .bonus-txt strong{color:var(--green);}
+  .features{display:flex;flex-direction:column;gap:20px;width:100%;margin-bottom:32px;}
+  .feature{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;}
+  .feat-icon{font-size:32px;}
+  .feature h3{font-size:14px;font-weight:700;color:var(--gray-800);}
+  .feature p{font-size:12px;color:var(--gray-600);}
+  .land-footer{font-size:12px;color:var(--gray-400);padding:16px;text-align:center;border-top:1px solid var(--gray-200);}
+
+  /* ===== AUTH (Register / Login) ===== */
+  #page-register,#page-login{background:var(--green-bg);}
+  .auth-body{flex:1;padding:32px 24px;display:flex;flex-direction:column;align-items:center;overflow-y:auto;}
+  .med-check{
+    width:64px;height:64px;background:var(--green);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:20px;box-shadow:0 4px 20px rgba(22,163,74,0.3);
+  }
+  .med-check svg{width:36px;height:36px;stroke:white;fill:none;stroke-width:3;}
+  .auth-body h1{font-size:26px;font-weight:800;color:var(--gray-800);margin-bottom:6px;}
+  .auth-sub{font-size:14px;color:var(--gray-600);text-align:center;margin-bottom:28px;}
+  .form-group{width:100%;margin-bottom:14px;position:relative;}
+  .form-group label{
+    position:absolute;top:-9px;left:14px;
+    background:var(--green-bg);padding:0 4px;
+    font-size:12px;color:var(--green);font-weight:600;
+  }
+  .f-input{
+    width:100%;padding:14px 14px 14px 42px;
+    border:1.5px solid var(--gray-200);border-radius:12px;
+    font-size:14px;font-family:inherit;background:white;
+    color:var(--gray-800);outline:none;transition:border-color 0.15s;
+  }
+  .f-input:focus{border-color:var(--green);}
+  .f-input.no-icon{padding-left:14px;}
+  .inp-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gray-400);}
+  .inp-icon svg{width:18px;height:18px;}
+  .eye-btn{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px;}
+  .eye-btn svg{width:18px;height:18px;}
+  .err{font-size:12px;color:#ef4444;margin-top:4px;display:none;}
+  .btn-full{
+    width:100%;padding:16px;background:var(--green);color:white;
+    border:none;border-radius:12px;font-size:15px;font-weight:700;
+    cursor:pointer;font-family:inherit;margin-top:8px;margin-bottom:16px;
+  }
+  .auth-footer{font-size:14px;color:var(--gray-600);}
+  .auth-footer a{color:var(--green);font-weight:600;cursor:pointer;}
+
+  /* ===== ONBOARDING ===== */
+  #page-onboarding{background:#f8fafc;}
+  .onboard-scroll{flex:1;overflow-y:auto;padding:16px 16px 120px;display:flex;flex-direction:column;gap:16px;}
+
+  .wbonus-card{
+    background:var(--green);border-radius:16px;padding:20px;
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  }
+  .wbc-left{flex:1;}
+  .wbc-left h2{font-size:26px;font-weight:800;color:white;line-height:1.2;margin-bottom:6px;}
+  .wbc-left p{font-size:14px;color:rgba(255,255,255,0.88);line-height:1.4;margin-bottom:14px;}
+  .prog-labels{display:flex;justify-content:space-between;margin-bottom:6px;}
+  .prog-labels span{font-size:12px;color:rgba(255,255,255,0.85);font-weight:600;}
+  .prog-bar{height:7px;background:rgba(255,255,255,0.25);border-radius:10px;overflow:hidden;}
+  .prog-fill{height:100%;background:white;border-radius:10px;transition:width 0.4s ease;}
+  .wbc-amount{
+    background:white;border-radius:14px;padding:14px 16px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    flex-shrink:0;min-width:80px;
+  }
+  .wbc-amount .an{font-size:24px;font-weight:800;color:var(--green);line-height:1;}
+  .wbc-amount .au{font-size:13px;font-weight:700;color:var(--green);}
+
+  .q-card{background:white;border-radius:16px;padding:20px;box-shadow:var(--shadow);}
+  .q-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .q-num{
+    width:36px;height:36px;background:var(--green);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-size:15px;font-weight:800;flex-shrink:0;
+  }
+  .q-req{background:#fee2e2;color:#dc2626;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;}
+  .q-text{font-size:18px;font-weight:700;color:var(--gray-800);margin-bottom:14px;line-height:1.3;}
+  .q-opts{display:flex;flex-direction:column;gap:10px;}
+  .q-opt{
+    display:flex;align-items:center;gap:12px;
+    border:1.5px solid var(--gray-200);border-radius:12px;padding:14px;
+    cursor:pointer;transition:all 0.15s;background:white;
+  }
+  .q-opt:hover{border-color:var(--green);background:var(--green-bg);}
+  .q-opt.sel{border-color:var(--green);background:var(--green-bg);}
+  .radio-ring{
+    width:22px;height:22px;border:2px solid #d1d5db;
+    border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .q-opt.sel .radio-ring{border-color:var(--green);background:var(--green);}
+  .radio-dot{width:8px;height:8px;background:white;border-radius:50%;display:none;}
+  .q-opt.sel .radio-dot{display:block;}
+  .q-opt span{font-size:14px;font-weight:500;color:var(--gray-800);}
+
+  .onboard-nav{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:430px;background:white;
+    border-top:1px solid var(--gray-200);padding:14px 16px;
+    display:flex;gap:12px;z-index:200;
+  }
+  .nav-back-btn{
+    flex:1;padding:14px;background:var(--gray-100);color:var(--gray-600);
+    border:none;border-radius:12px;font-size:15px;font-weight:700;
+    cursor:pointer;font-family:inherit;
+  }
+  .nav-next-btn{
+    flex:2;padding:14px;background:var(--green);color:white;
+    border:none;border-radius:12px;font-size:15px;font-weight:700;
+    cursor:pointer;font-family:inherit;transition:background 0.15s;
+  }
+  .nav-next-btn:disabled{background:#d1d5db;cursor:not-allowed;}
+
+  /* ===== DASHBOARD ===== */
+  #page-dashboard{background:var(--gray-100);}
+  .top-bar{
+    background:var(--green);display:flex;align-items:center;
+    justify-content:space-between;padding:14px 16px;
+    position:sticky;top:0;z-index:100;flex-shrink:0;
+  }
+  .tbl{display:flex;align-items:center;gap:8px;}
+  .check-icon{
+    width:32px;height:32px;background:white;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .check-icon svg{width:18px;height:18px;stroke:#16a34a;fill:none;stroke-width:3;}
+  .tbl span{font-weight:700;font-size:16px;color:white;}
+  .tb-icons{display:flex;gap:16px;}
+  .tb-icons button{background:none;border:none;cursor:pointer;padding:4px;}
+  .tb-icons svg{width:22px;height:22px;stroke:white;fill:none;stroke-width:2;}
+
+  .dash-scroll{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px;padding-bottom:90px;}
+
+  .act-banner{
+    background:var(--orange);border-radius:14px;padding:16px;
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;box-shadow:0 3px 16px rgba(249,115,22,0.3);
+  }
+  .act-left{display:flex;align-items:center;gap:12px;}
+  .lock-wrap{
+    background:rgba(255,255,255,0.25);border-radius:8px;padding:8px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .lock-wrap svg{width:24px;height:24px;stroke:white;fill:none;stroke-width:2;}
+  .act-banner h3{color:white;font-size:15px;font-weight:800;}
+  .act-banner p{color:rgba(255,255,255,0.85);font-size:12px;margin-top:2px;}
+
+  .greet-card{
+    background:white;border-radius:14px;padding:16px;
+    display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);
+  }
+  .greet-emoji{
+    width:48px;height:48px;background:#fef9c3;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;
+  }
+  .greet-card h2{font-size:18px;font-weight:800;color:var(--gray-800);}
+  .greet-card p{font-size:13px;color:var(--gray-600);margin-top:2px;line-height:1.4;}
+
+  .bal-card{background:var(--green);border-radius:14px;padding:20px;box-shadow:0 4px 20px rgba(22,163,74,0.3);}
+  .bal-lbl{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.85);font-size:13px;font-weight:600;margin-bottom:8px;}
+  .bal-amt{font-size:36px;font-weight:800;color:white;margin-bottom:16px;}
+  .bal-btns{display:flex;gap:10px;}
+  .bb{flex:1;padding:10px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;border:none;}
+  .bb.w{background:white;color:var(--green);}
+  .bb.e{background:rgba(255,255,255,0.2);color:white;border:1.5px solid rgba(255,255,255,0.5);}
+
+  /* Ticker */
+  .live-ticker{background:white;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);}
+  .ticker-hd{background:#fee2e2;padding:8px 14px;display:flex;align-items:center;gap:8px;}
+  .live-dot{width:8px;height:8px;background:#ef4444;border-radius:50%;animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .ticker-hd .th-lbl{font-size:12px;font-weight:700;color:#dc2626;}
+  .ticker-hd .inst-badge{margin-left:auto;background:#dcfce7;color:var(--green);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .ticker-body{overflow:hidden;position:relative;height:80px;}
+  .ticker-wrap{position:absolute;width:100%;transition:transform 0.5s ease;}
+  .t-item{padding:12px 14px;display:flex;align-items:center;gap:10px;height:80px;}
+  .t-chk{color:var(--green);font-size:20px;flex-shrink:0;}
+  .t-inf{flex:1;}
+  .t-amt{font-size:15px;font-weight:700;color:var(--gray-800);}
+  .t-ph{font-size:12px;color:var(--gray-400);}
+  .t-tm{font-size:11px;color:var(--gray-400);margin-top:1px;}
+  .t-pd{background:#dcfce7;color:var(--green);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+  .ticker-ft{font-size:11px;color:var(--green);font-weight:600;padding:0 14px 10px;}
+
+  /* Surveys */
+  .surv-hd{display:flex;align-items:center;justify-content:space-between;padding:0 2px 4px;}
+  .surv-hd h3{font-size:15px;font-weight:800;color:var(--gray-800);}
+  .surv-hd span{font-size:12px;color:var(--green);font-weight:600;}
+  .surv-grid{display:flex;flex-direction:column;gap:10px;}
+  .surv-card{background:white;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;}
+  .surv-banner{height:62px;position:relative;overflow:hidden;display:flex;align-items:center;padding:0 14px;gap:12px;}
+  .surv-banner::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.38);backdrop-filter:blur(1.5px);}
+  .sb-em{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;position:relative;z-index:1;filter:blur(1.5px);}
+  .sb-in{flex:1;position:relative;z-index:1;filter:blur(1.5px);}
+  .sb-in .sbt{font-size:13px;font-weight:700;color:var(--gray-800);}
+  .sb-in .sbs{font-size:11px;color:#6b7280;margin-top:2px;}
+  .sb-rw{position:relative;z-index:1;filter:blur(1.5px);text-align:right;}
+  .sra{font-size:14px;font-weight:800;color:var(--green);}
+  .srt{font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:20px;font-weight:600;display:inline-block;margin-top:3px;}
+  .surv-lock{border-top:1px solid var(--gray-100);padding:10px 14px;display:flex;align-items:center;gap:10px;background:white;}
+  .sl-ico{width:38px;height:38px;flex-shrink:0;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .sl-ico svg{width:22px;height:22px;}
+  .sl-t{font-size:13px;font-weight:700;color:var(--gray-800);}
+  .sl-s{font-size:11px;color:var(--gray-600);margin-top:1px;line-height:1.4;}
+
+  /* Bottom nav */
+  .bot-nav{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:430px;background:white;
+    border-top:1px solid var(--gray-200);display:flex;z-index:200;
+    box-shadow:0 -4px 16px rgba(0,0,0,0.06);
+  }
+  .ni{
+    flex:1;display:flex;flex-direction:column;align-items:center;
+    padding:8px 0 10px;cursor:pointer;border:none;background:none;
+    font-family:inherit;gap:3px;position:relative;
+  }
+  .ni svg{width:22px;height:22px;stroke:var(--gray-400);fill:none;stroke-width:2;}
+  .ni span{font-size:11px;font-weight:600;color:var(--gray-400);}
+  .ni.active span{color:var(--green);}
+  .ni.active svg{stroke:var(--green);}
+  .nav-bar{position:absolute;bottom:0;left:25%;right:25%;height:3px;background:var(--green);border-radius:2px 2px 0 0;}
+
+  /* Loan popup */
+  .loan-pop{
+    position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+    width:calc(100% - 24px);max-width:406px;
+    background:var(--orange);border-radius:16px;padding:16px 18px;
+    z-index:300;box-shadow:0 8px 32px rgba(249,115,22,0.4);
+    display:flex;flex-direction:column;gap:10px;animation:slideUp 0.3s ease;
+  }
+  @keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+  .loan-hd{display:flex;align-items:flex-start;justify-content:space-between;}
+  .loan-pop h3{font-size:16px;font-weight:800;color:white;}
+  .loan-pop p{font-size:13px;color:rgba(255,255,255,0.9);margin-top:4px;line-height:1.4;}
+  .loan-x{background:none;border:none;color:rgba(255,255,255,0.8);font-size:20px;cursor:pointer;padding:0;margin-left:8px;flex-shrink:0;}
+  .loan-apply{background:white;color:var(--orange);border:none;border-radius:10px;padding:12px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- LOADER OVERLAY -->
+  <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
+
+  <!-- ===== LANDING ===== -->
+  <div class="page active" id="page-landing">
+    <div class="green-header"><span>Paid AI Survey</span></div>
+    <div class="landing-body">
+      <div class="big-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <h1>Earn Real Money<br>with Surveys</h1>
+      <p class="hero-sub">Complete short surveys and get paid instantly via M-Pesa. Join thousands already earning in Kenya!</p>
+      <button class="btn-green" onclick="go('register')">Get Started – It's Free &nbsp;→</button>
+      <button class="btn-outline" onclick="go('login')">Already have an account? Sign In</button>
+      <p class="bonus-txt">Get up to <strong>1,000 KSh</strong> welcome bonus after your first survey</p>
+      <div class="features">
+        <div class="feature"><div class="feat-icon">💰</div><h3>Instant Payments</h3><p>Withdraw earnings directly to M-Pesa</p></div>
+        <div class="feature"><div class="feat-icon">📱</div><h3>Short Surveys</h3><p>5–15 minutes each, available daily</p></div>
+        <div class="feature"><div class="feat-icon">🔒</div><h3>Secure &amp; Private</h3><p>Your data is protected</p></div>
+      </div>
+    </div>
+    <div class="land-footer">© 2026 Paid AI Survey Kenya • All rights reserved</div>
+  </div>
+
+  <!-- ===== REGISTER ===== -->
+  <div class="page" id="page-register">
+    <div class="green-header"><span>Paid AI Survey</span></div>
+    <div class="auth-body">
+      <div class="med-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <h1>Create Account</h1>
+      <p class="auth-sub">Join thousands earning real money with surveys</p>
+
+      <div class="form-group">
+        <label>Full Name</label>
+        <span class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <input class="f-input" id="rName" type="text" placeholder="Your full name">
+        <div class="err" id="eN">Please enter your full name</div>
+      </div>
+      <div class="form-group">
+        <span class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+        <input class="f-input" id="rEmail" type="email" placeholder="Email Address">
+        <div class="err" id="eE">Please enter a valid email</div>
+      </div>
+      <div class="form-group">
+        <span class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.6 3.22 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.34 1.85.573 2.81.7A2 2 0 0 1 21.72 16z"/></svg></span>
+        <input class="f-input" id="rPhone" type="tel" placeholder="Phone Number (07XXXXXXXX)">
+        <div class="err" id="ePh">Please enter a valid phone number</div>
+      </div>
+      <div class="form-group">
+        <span class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <input class="f-input" id="rPass" type="password" placeholder="Password">
+        <button class="eye-btn" onclick="tp('rPass')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <div class="err" id="ePa">Password must be at least 6 characters</div>
+      </div>
+      <div class="form-group">
+        <span class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <input class="f-input" id="rPass2" type="password" placeholder="Confirm Password">
+        <button class="eye-btn" onclick="tp('rPass2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <div class="err" id="ePa2">Passwords do not match</div>
+      </div>
+      <div class="form-group">
+        <input class="f-input no-icon" id="rRef" type="text" placeholder="Referral Code (Optional)">
+      </div>
+      <button class="btn-full" onclick="doRegister()">Create Account →</button>
+      <p class="auth-footer">Already have an account? <a onclick="go('login')">Sign In</a></p>
+    </div>
+  </div>
+
+  <!-- ===== LOGIN ===== -->
+  <div class="page" id="page-login">
+    <div class="green-header"><span>Paid AI Survey</span></div>
+    <div class="auth-body">
+      <div class="med-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <h1>Sign In</h1>
+      <p class="auth-sub">Welcome back! Sign in to continue earning</p>
+      <div class="form-group">
+        <span class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+        <input class="f-input" id="lEmail" type="email" placeholder="Email Address">
+        <div class="err" id="eLE">Please enter your email</div>
+      </div>
+      <div class="form-group">
+        <span class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <input class="f-input" id="lPass" type="password" placeholder="Password">
+        <button class="eye-btn" onclick="tp('lPass')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <div class="err" id="eLP">Please enter your password</div>
+      </div>
+      <button class="btn-full" onclick="doLogin()">Sign In →</button>
+      <p class="auth-footer">Don't have an account? <a onclick="go('register')">Register</a></p>
+    </div>
+  </div>
+
+  <!-- ===== ONBOARDING ===== -->
+  <div class="page" id="page-onboarding">
+    <div class="green-header">
+      <button class="back-lnk" onclick="onbBack()">← Welcome</button>
+    </div>
+    <div class="onboard-scroll">
+      <div class="wbonus-card">
+        <div class="wbc-left">
+          <h2>Welcome Bonus</h2>
+          <p>Complete 5 quick questions to unlock</p>
+          <div class="prog-labels">
+            <span id="qLabel">Question 1/5</span>
+            <span id="qPct">20%</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" id="qBar" style="width:20%"></div></div>
+        </div>
+        <div class="wbc-amount">
+          <div class="an">1,000</div>
+          <div class="au">KSh</div>
+        </div>
+      </div>
+      <div class="q-card" id="qCard"></div>
+    </div>
+    <div class="onboard-nav">
+      <button class="nav-back-btn" onclick="onbBack()">← Back</button>
+      <button class="nav-next-btn" id="nextBtn" onclick="onbNext()" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="page" id="page-dashboard">
+    <div class="top-bar">
+      <div class="tbl">
+        <div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span>Paid AI Survey</span>
+      </div>
+      <div class="tb-icons">
+        <button><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
+        <button><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+      </div>
+    </div>
+
+    <div class="dash-scroll">
+      <div class="act-banner">
+        <div class="act-left">
+          <div class="lock-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div>
+            <h3>Activate Account to Start</h3>
+            <p>Unlock all surveys &amp; begin earning →</p>
+          </div>
+        </div>
+        <span style="color:white;font-size:20px;">→</span>
+      </div>
+
+      <div class="greet-card">
+        <div class="greet-emoji">👋</div>
+        <div>
+          <h2 id="dGreet">Good morning! 👋</h2>
+          <p id="dSub">Activate your account to unlock all surveys and begin earning</p>
+        </div>
+      </div>
+
+      <div class="bal-card">
+        <div class="bal-lbl"><span>💰</span> Available Balance</div>
+        <div class="bal-amt" id="dBal">0 KSh</div>
+        <div class="bal-btns">
+          <button class="bb w">Withdraw</button>
+          <button class="bb e">Earn More</button>
+        </div>
+      </div>
+
+      <div class="live-ticker">
+        <div class="ticker-hd">
+          <div class="live-dot"></div>
+          <span class="th-lbl">LIVE Recent Withdrawals</span>
+          <span class="inst-badge">Instant</span>
+        </div>
+        <div class="ticker-body">
+          <div class="ticker-wrap" id="tickerWrap"></div>
+        </div>
+        <div class="ticker-ft" id="tickerFt">✨ Another satisfied member earned!</div>
+      </div>
+
+      <div class="surv-hd">
+        <h3>📊 Available Surveys</h3>
+        <span>Tap to earn →</span>
+      </div>
+      <div class="surv-grid" id="survGrid"></div>
+    </div>
+
+    <div class="bot-nav">
+      <button class="ni active" onclick="setNav(this)">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+        <div class="nav-bar"></div>
+      </button>
+      <button class="ni" onclick="setNav(this)">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        <span>Wallet</span>
+      </button>
+      <button class="ni" onclick="setNav(this)">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Refer</span>
+      </button>
+      <button class="ni" onclick="setNav(this)">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </div>
+
+    <div class="loan-pop" id="loanPop" style="display:none;">
+      <div class="loan-hd">
+        <div>
+          <h3>Need cash fast?</h3>
+          <p>Apply for a quick AI Survey Loan Now • Instant approval</p>
+        </div>
+        <button class="loan-x" onclick="closeLoan()">✕</button>
+      </div>
+      <button class="loan-apply">Apply Loan</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ── STATE ── */
+let user = null;        // { name, email, phone }
+let qStep = 0;
+let qAnswers = {};
+let bonusEarned = false;
+let tickerTimer = null;
+
+/* ── QUESTIONS ── */
+const Qs = [
+  { q:'What is your age group?',        opts:['18–24 years','25–34 years','35–44 years','45–54 years','55+ years'] },
+  { q:'What is your gender?',           opts:['Male','Female','Prefer not to say'] },
+  { q:'Which county are you from?',     opts:['Nairobi','Mombasa','Kisumu','Nakuru','Other'] },
+  { q:'What is your employment status?',opts:['Employed (full-time)','Employed (part-time)','Self-employed','Student','Unemployed'] },
+  { q:'What is your monthly income range?', opts:['Below KSh 10,000','KSh 10,000 – 30,000','KSh 30,000 – 60,000','Above KSh 60,000'] }
+];
+
+/* ── WITHDRAWALS ── */
+const WD = [
+  {a:'9,900 KSh', p:'+254762***199', t:'5 minutes ago'},
+  {a:'4,500 KSh', p:'+254712***045', t:'12 minutes ago'},
+  {a:'7,200 KSh', p:'+254722***381', t:'18 minutes ago'},
+  {a:'2,300 KSh', p:'+254733***760', t:'27 minutes ago'},
+  {a:'11,000 KSh',p:'+254700***512', t:'34 minutes ago'},
+  {a:'3,800 KSh', p:'+254711***294', t:'41 minutes ago'},
+  {a:'6,500 KSh', p:'+254798***830', t:'55 minutes ago'},
+  {a:'1,900 KSh', p:'+254743***177', t:'1 hour ago'},
+];
+let tIdx = 0;
+
+/* ── SURVEYS ── */
+const SV = [
+  {e:'📱',bg:'#dbeafe',t:'Mobile Usage Survey',     s:'Rate your daily app usage',      r:'150 KSh',d:'5 min'},
+  {e:'🛒',bg:'#ede9fe',t:'Online Shopping Habits',   s:'Share your shopping experience',  r:'200 KSh',d:'8 min'},
+  {e:'📣',bg:'#fce7f3',t:'Brand Awareness Feedback', s:'Evaluate Kenyan brands',          r:'180 KSh',d:'6 min'},
+  {e:'🌿',bg:'#dcfce7',t:'Daily Task Habits',        s:'Health & wellness habits',        r:'120 KSh',d:'5 min'},
+  {e:'💳',bg:'#fef9c3',t:'Paid Withdrawal Survey',   s:'M-Pesa & banking behavior',       r:'250 KSh',d:'10 min'},
+  {e:'⭐',bg:'#fee2e2',t:'Bank & App Reviews',       s:'Review featured apps',            r:'100 KSh',d:'4 min'},
+  {e:'🍔',bg:'#ffedd5',t:'Food Preferences',         s:'Restaurants & delivery apps',     r:'160 KSh',d:'7 min'},
+  {e:'📲',bg:'#e0f2fe',t:'Social Media Survey',      s:'TikTok, Instagram, X usage',      r:'140 KSh',d:'5 min'},
+  {e:'🏋️',bg:'#f0fdf4',t:'Health & Wellness',       s:'Exercise & diet habits',          r:'200 KSh',d:'8 min'},
+  {e:'📊',bg:'#faf5ff',t:'Finance & Apps',           s:'Savings & investment tools',      r:'300 KSh',d:'12 min'},
+];
+
+/* ── LOADER ── */
+function showLoader(ms, cb) {
+  const L = document.getElementById('loader');
+  L.classList.add('show');
+  setTimeout(() => { L.classList.remove('show'); if(cb) cb(); }, ms);
+}
+
+/* ── NAVIGATE ── */
+function go(pageId) {
+  showLoader(1200, () => {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-'+pageId).classList.add('active');
+    window.scrollTo(0,0);
+  });
+}
+
+/* ── AUTH ── */
+function se(id, v){ document.getElementById(id).style.display = v ? 'block':'none'; }
+
+function doRegister() {
+  const name  = document.getElementById('rName').value.trim();
+  const email = document.getElementById('rEmail').value.trim();
+  const phone = document.getElementById('rPhone').value.trim();
+  const pass  = document.getElementById('rPass').value;
+  const pass2 = document.getElementById('rPass2').value;
+  let ok = true;
+  se('eN',  !name);           if(!name) ok=false;
+  se('eE',  !email||!email.includes('@')); if(!email||!email.includes('@')) ok=false;
+  se('ePh', !phone||phone.length<9);       if(!phone||phone.length<9) ok=false;
+  se('ePa', pass.length<6);               if(pass.length<6) ok=false;
+  se('ePa2',pass!==pass2);                if(pass!==pass2) ok=false;
+  if(!ok) return;
+
+  user = { name, email, phone };
+  qStep = 0; qAnswers = {}; bonusEarned = false;
+  renderQ();
+  go('onboarding');
+}
+
+function doLogin() {
+  const email = document.getElementById('lEmail').value.trim();
+  const pass  = document.getElementById('lPass').value;
+  let ok = true;
+  se('eLE', !email); if(!email) ok=false;
+  se('eLP', !pass);  if(!pass)  ok=false;
+  if(!ok) return;
+  if(!user) {
+    const n = email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    user = { name:n, email, phone:'' };
+  }
+  loadDash();
+  go('dashboard');
+}
+
+/* ── ONBOARDING ── */
+function renderQ() {
+  const q = Qs[qStep], total = Qs.length;
+  const pct = Math.round(((qStep+1)/total)*100);
+  document.getElementById('qLabel').textContent = `Question ${qStep+1}/${total}`;
+  document.getElementById('qPct').textContent   = `${pct}%`;
+  document.getElementById('qBar').style.width   = `${pct}%`;
+
+  document.getElementById('qCard').innerHTML = `
+    <div class="q-head">
+      <div class="q-num">${qStep+1}</div>
+      <span class="q-req">Required</span>
+    </div>
+    <div class="q-text">${q.q}</div>
+    <div class="q-opts">
+      ${q.opts.map((o,i)=>`
+        <div class="q-opt${qAnswers[qStep]===i?' sel':''}" id="qo${i}" onclick="pickOpt(${i})">
+          <div class="radio-ring"><div class="radio-dot"></div></div>
+          <span>${o}</span>
+        </div>`).join('')}
+    </div>`;
+
+  document.getElementById('nextBtn').disabled = (qAnswers[qStep] === undefined);
+}
+
+function pickOpt(i) {
+  document.querySelectorAll('.q-opt').forEach(o=>o.classList.remove('sel'));
+  document.getElementById('qo'+i).classList.add('sel');
+  qAnswers[qStep] = i;
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function onbNext() {
+  if(qStep < Qs.length-1) {
+    qStep++;
+    showLoader(800, renderQ);
+  } else {
+    bonusEarned = true;
+    loadDash();
+    showLoader(1500, () => {
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      document.getElementById('page-dashboard').classList.add('active');
+      window.scrollTo(0,0);
+    });
+  }
+}
+
+function onbBack() {
+  if(qStep > 0){ qStep--; renderQ(); }
+  else go('register');
+}
+
+/* ── DASHBOARD ── */
+function getGreet() {
+  const h = new Date().getHours();
+  return h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+}
+
+function loadDash() {
+  if(!user) return;
+  const first = user.name.split(' ')[0];
+  document.getElementById('dGreet').textContent = `${getGreet()}, ${first}! 👋`;
+  document.getElementById('dBal').textContent   = bonusEarned ? '1,000 KSh' : '0 KSh';
+
+  buildSurveys();
+  buildTicker();
+  startTicker();
+
+  setTimeout(()=>{ document.getElementById('loanPop').style.display='flex'; }, 2500);
+  //setTimeout(()=>closeLoan(), 11000);
+}
+
+function buildSurveys() {
+  const g = document.getElementById('survGrid');
+  g.innerHTML = SV.map(s=>`
+    <div class="surv-card">
+      <div class="surv-banner" style="background:${s.bg}">
+        <div class="sb-em" style="background:rgba(255,255,255,0.5)">${s.e}</div>
+        <div class="sb-in"><div class="sbt">${s.t}</div><div class="sbs">${s.s}</div></div>
+        <div class="sb-rw"><div class="sra">${s.r}</div><span class="srt">⏱ ${s.d}</span></div>
+      </div>
+      <div class="surv-lock">
+        <div class="sl-ico">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="11" width="18" height="11" rx="2" fill="#f59e0b"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#d97706" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="sl-t">Activate Account Required</div>
+          <div class="sl-s">Activate your account to unlock all surveys and start earning.</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function buildTicker() {
+  const w = document.getElementById('tickerWrap');
+  w.innerHTML = WD.map(d=>`
+    <div class="t-item">
+      <div class="t-chk">✓</div>
+      <div class="t-inf">
+        <div class="t-amt">${d.a}</div>
+        <div class="t-ph">${d.p}</div>
+        <div class="t-tm">${d.t}</div>
+      </div>
+      <span class="t-pd">Paid</span>
+    </div>`).join('');
+}
+
+const tickerMsgs = [
+  '✨ Another satisfied member earned!',
+  '🎉 Someone just got paid instantly!',
+  '💚 Real money, real people in Kenya!',
+  '🔥 New withdrawal every few minutes!',
+  '🚀 Join thousands already earning!',
+];
+
+function startTicker() {
+  if(tickerTimer) clearInterval(tickerTimer);
+  tIdx = 0;
+  tickerTimer = setInterval(()=>{
+    tIdx = (tIdx+1) % WD.length;
+    document.getElementById('tickerWrap').style.transform = `translateY(-${tIdx*80}px)`;
+    document.getElementById('tickerFt').textContent = tickerMsgs[tIdx % tickerMsgs.length];
+  }, 3000);
+}
+
+/* ── UTILS ── */
+function tp(id){ const e=document.getElementById(id); e.type=e.type==='password'?'text':'password'; }
+
+function setNav(btn){
+  document.querySelectorAll('.ni').forEach(n=>{ n.classList.remove('active'); const b=n.querySelector('.nav-bar'); if(b)b.remove(); });
+  btn.classList.add('active');
+  const bar=document.createElement('div'); bar.className='nav-bar'; btn.appendChild(bar);
+}
+
+function closeLoan(){ const p=document.getElementById('loanPop'); if(p) p.style.display='none'; }
+</script>
+</body>
+</html>
