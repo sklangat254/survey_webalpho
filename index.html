@@ -267,7 +267,47 @@
   .pay-btn:disabled{background:#d1d5db;cursor:not-allowed;}
   .pay-btn .mpesa-badge{background:rgba(255,255,255,.2);padding:3px 8px;border-radius:6px;font-size:12px;}
 
-  /* Payment status states */
+  /* Manual verify section */
+  .already-paid-wrap{margin-top:16px;}
+  .already-paid-toggle{
+    width:100%;padding:12px 16px;
+    background:var(--gray-100);border:1.5px solid var(--gray-200);
+    border-radius:12px;font-size:14px;font-weight:700;
+    color:var(--gray-600);cursor:pointer;font-family:inherit;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .already-paid-toggle .apt-left{display:flex;align-items:center;gap:8px;}
+  .apt-arrow{font-size:12px;transition:transform .2s;}
+  .apt-arrow.open{transform:rotate(180deg);}
+  .manual-verify-box{
+    display:none;margin-top:10px;
+    background:#f8fafc;border:1.5px solid var(--gray-200);
+    border-radius:12px;padding:14px;
+  }
+  .manual-verify-box.show{display:block;}
+  .mv-steps{font-size:12px;color:var(--gray-600);line-height:1.8;margin-bottom:12px;}
+  .mv-steps span{display:block;}
+  .mv-amount-hint{
+    background:var(--green-bg);border:1px solid var(--green);
+    border-radius:8px;padding:8px 12px;margin-bottom:12px;
+    font-size:12px;font-weight:700;color:var(--green);text-align:center;
+  }
+  .mv-textarea{
+    width:100%;min-height:100px;padding:12px;
+    border:1.5px solid var(--gray-200);border-radius:10px;
+    font-size:13px;font-family:inherit;color:var(--gray-800);
+    background:white;outline:none;resize:vertical;line-height:1.5;
+    transition:border-color .15s;
+  }
+  .mv-textarea:focus{border-color:var(--green);}
+  .mv-textarea::placeholder{color:var(--gray-400);}
+  .mv-verify-btn{
+    width:100%;margin-top:10px;padding:13px;
+    background:#3b82f6;color:white;border:none;
+    border-radius:10px;font-size:14px;font-weight:700;
+    cursor:pointer;font-family:inherit;
+  }
+  .mv-err{font-size:12px;color:#ef4444;margin-top:6px;display:none;text-align:center;}
   .pay-status{margin-top:14px;padding:14px;border-radius:12px;text-align:center;display:none;}
   .pay-status.waiting{background:#fff7ed;display:block;}
   .pay-status.success{background:#dcfce7;display:block;}
@@ -333,6 +373,29 @@
       </button>
 
       <div class="pay-status" id="payStatus"></div>
+
+      <!-- ── ALREADY PAID? ── -->
+      <div class="already-paid-wrap">
+        <button class="already-paid-toggle" onclick="toggleManualVerify()">
+          <span class="apt-left">📱 Already Paid? Verify Manually</span>
+          <span class="apt-arrow" id="aptArrow">▼</span>
+        </button>
+        <div class="manual-verify-box" id="manualVerifyBox">
+          <div class="mv-steps">
+            <span>1. Open your M-Pesa messages</span>
+            <span>2. Find the KSh 200 confirmation SMS</span>
+            <span>3. Long-press → Copy the <strong>entire</strong> message</span>
+            <span>4. Tap the box below and Paste, then click Verify</span>
+          </div>
+          <div class="mv-amount-hint">Expected Amount: KES 200</div>
+          <textarea
+            class="mv-textarea"
+            id="mpesaPasteBox"
+            placeholder="Paste your M-Pesa confirmation message here&#10;&#10;Example: RZS1234567 Confirmed. Ksh200.00 sent to FLEX BS SOLUTIONS..."></textarea>
+          <div class="mv-err" id="mvErr"></div>
+          <button class="mv-verify-btn" onclick="verifyManually()">✓ Verify Payment</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -543,13 +606,13 @@
 
 <script>
 /* ═══════════════════════════════════════════════
-   PAYHERO CONFIG — update with your credentials
+   PAYHERO CONFIG
 ═══════════════════════════════════════════════ */
 const PAYHERO = {
-  backendUrl: 'https://your-flask-backend.onrender.com', // ← your Render backend URL
-  channelId:  0,     // ← your PayHero channel ID
-  amount:     200,
-  callbackUrl:'https://paid-ai-surveys.vercel.app/callback'
+  backendUrl:  'https://payhero-api.onrender.com', // Python API on Render
+  amount:      200,
+  description: 'Account Activation - Paid AI Survey Kenya',
+  tillName:    'FLEX BS SOLUTIONS' // Used for manual M-Pesa message verification
 };
 
 /* ═══════════════════════════════════════════════
@@ -905,7 +968,7 @@ function closeActModal(){
 }
 
 /* ═══════════════════════════════════════════════
-   PAYHERO STK PUSH
+   PAYHERO STK PUSH  (matches Python API format)
 ═══════════════════════════════════════════════ */
 async function initiatePayment(){
   const raw = document.getElementById('actPhone').value.trim();
@@ -914,83 +977,127 @@ async function initiatePayment(){
     return;
   }
 
-  // Format to 254XXXXXXXXX
-  const phone = '254' + raw.replace(/^(0|254|\+254)/,'');
+  // Format phone → 254XXXXXXXXX  (same as B4A: strip leading 0 then prefix 254)
+  let cleanPhone = raw.replace(/\s|-|\+/g,'');
+  if(cleanPhone.startsWith('0')) cleanPhone = '254' + cleanPhone.substring(1);
+  if(!cleanPhone.startsWith('254')) cleanPhone = '254' + cleanPhone;
 
   const btn = document.getElementById('payBtn');
   btn.disabled = true;
-  btn.innerHTML = '<div class="spinner" style="width:22px;height:22px;border-width:3px;margin-right:8px;display:inline-block"></div> Sending M-Pesa prompt...';
+  btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:3px;margin-right:8px;display:inline-block;vertical-align:middle"></div> Sending M-Pesa prompt...';
 
   setPayStatus('waiting',
     '<span class="pay-status-spinner"></span> Check your phone for the M-Pesa prompt and enter your PIN...');
 
   try {
-    const ref = 'PAIS-ACT-' + Date.now();
-
-    /* ── PayHero STK Push ──
-       Route through your Flask backend to keep credentials safe.
-       Update PAYHERO.backendUrl to your actual Render URL.
-    ── */
-    const res = await fetch(`${PAYHERO.backendUrl}/initiate-payment`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+    // ── Exact payload format from B4A InitiatePaymentAPI ──
+    const res = await fetch(`${PAYHERO.backendUrl}/api/payment/initiate`, {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
+        phone:       cleanPhone,
         amount:      PAYHERO.amount,
-        phone_number:phone,
-        channel_id:  PAYHERO.channelId,
-        external_reference: ref,
-        callback_url: PAYHERO.callbackUrl,
-        description: 'Account Activation - Paid AI Survey Kenya'
+        description: PAYHERO.description
       })
     });
 
     const data = await res.json();
 
-    if(data.success || data.CheckoutRequestID || data.checkout_request_id){
-      const checkoutId = data.CheckoutRequestID || data.checkout_request_id || ref;
-      pollPaymentStatus(checkoutId);
+    // ── Response check from B4A: status === "success" ──
+    if(data.status === 'success'){
+      const txCode = data.data && data.data.transaction_code ? data.data.transaction_code : '';
+      console.log('STK Push initiated. Transaction code:', txCode);
+
+      // After 15s automatically open the Already Paid section (same as B4A's ShowManualVerificationPopup)
+      setTimeout(()=>{
+        setPayStatus('waiting',
+          '<span class="pay-status-spinner"></span> Still waiting... If you already paid, use "Already Paid? Verify Manually" below.');
+        // Auto-open the manual verify box
+        const box = document.getElementById('manualVerifyBox');
+        const arrow = document.getElementById('aptArrow');
+        if(box && !box.classList.contains('show')){
+          box.classList.add('show');
+          arrow.classList.add('open');
+        }
+      }, 15000);
+
     } else {
       throw new Error(data.message || 'Payment initiation failed');
     }
 
   } catch(err){
     console.error('Payment error:', err);
-    // ── DEMO FALLBACK (remove in production) ──
-    // Simulates successful payment after 5 seconds for testing
-    console.warn('Using demo mode — remove in production');
-    setTimeout(()=> onPaymentSuccess(), 5000);
+    setPayStatus('failed', '⚠️ Could not reach payment server. Use "Already Paid?" below if you paid, or retry.');
+    btn.disabled = false;
+    btn.innerHTML = 'Retry Payment <span class="mpesa-badge">M-Pesa</span>';
+    // Auto-open manual verify on error too
+    const box = document.getElementById('manualVerifyBox');
+    const arrow = document.getElementById('aptArrow');
+    if(box && !box.classList.contains('show')){
+      box.classList.add('show');
+      arrow.classList.add('open');
+    }
   }
 }
 
-function pollPaymentStatus(checkoutId){
-  let attempts = 0;
-  pollTimer = setInterval(async()=>{
-    attempts++;
-    if(attempts > 24){ // 2 min timeout
-      clearInterval(pollTimer);
-      setPayStatus('failed','Payment timed out. Please try again.');
-      document.getElementById('payBtn').disabled = false;
-      document.getElementById('payBtn').innerHTML =
-        'Retry Payment <span class="mpesa-badge">M-Pesa</span>';
-      return;
-    }
-    try{
-      const res = await fetch(
-        `${PAYHERO.backendUrl}/payment-status/${checkoutId}`
-      );
-      const d = await res.json();
-      if(d.status==='SUCCESS'||d.ResultCode==='0'||d.success===true){
-        clearInterval(pollTimer);
-        onPaymentSuccess();
-      } else if(d.status==='FAILED'||d.ResultCode==='1032'){
-        clearInterval(pollTimer);
-        setPayStatus('failed','Payment was cancelled or failed. Please try again.');
-        document.getElementById('payBtn').disabled=false;
-        document.getElementById('payBtn').innerHTML=
-          'Retry Payment <span class="mpesa-badge">M-Pesa</span>';
-      }
-    } catch(e){ /* keep polling */ }
-  }, 5000);
+/* ═══════════════════════════════════════════════
+   MANUAL VERIFICATION  (matches B4A VerifyMpesaMessage)
+═══════════════════════════════════════════════ */
+function toggleManualVerify(){
+  const box   = document.getElementById('manualVerifyBox');
+  const arrow = document.getElementById('aptArrow');
+  box.classList.toggle('show');
+  arrow.classList.toggle('open');
+}
+
+function verifyManually(){
+  const message = document.getElementById('mpesaPasteBox').value.trim();
+  const errEl   = document.getElementById('mvErr');
+  errEl.style.display = 'none';
+
+  if(!message){
+    showMvErr('Please paste your M-Pesa confirmation message first.');
+    return;
+  }
+
+  const msgLower   = message.toLowerCase();
+  const tillLower  = PAYHERO.tillName.toLowerCase();
+  const amountStr  = String(PAYHERO.amount); // "200"
+
+  // ── Check 1: till name present (case-insensitive) ──
+  if(!msgLower.includes(tillLower)){
+    showMvErr('This message is not for our till. Please use the correct M-Pesa SMS.');
+    return;
+  }
+
+  // ── Check 2: amount present in multiple formats (same as B4A) ──
+  const amountFound =
+    msgLower.includes('ksh' + amountStr + '.00') ||
+    msgLower.includes('ksh ' + amountStr + '.00') ||
+    msgLower.includes(amountStr + '.00') ||
+    msgLower.includes('ksh' + amountStr) ||
+    msgLower.includes('ksh ' + amountStr);
+
+  if(!amountFound){
+    showMvErr(`Payment amount does not match. Expected: KES ${amountStr}`);
+    return;
+  }
+
+  // ── Check 3: confirmation keywords (same as B4A) ──
+  if(!msgLower.includes('confirmed') && !msgLower.includes('sent')){
+    showMvErr("This doesn't look like a valid M-Pesa confirmation message.");
+    return;
+  }
+
+  // ── All checks passed ──
+  console.log('MANUAL VERIFICATION SUCCESSFUL — Till:', PAYHERO.tillName, '| Amount: KES', amountStr);
+  onPaymentSuccess();
+}
+
+function showMvErr(msg){
+  const el = document.getElementById('mvErr');
+  el.textContent = msg;
+  el.style.display = 'block';
 }
 
 function onPaymentSuccess(){
