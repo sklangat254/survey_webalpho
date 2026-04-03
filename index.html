@@ -1065,10 +1065,10 @@ function verifyManually(){
   const amountStr  = String(PAYHERO.amount); // "200"
 
   // ── Check 1: till name present (case-insensitive) ──
-  if(!msgLower.includes(tillLower)){
-    showMvErr('This message is not for our till. Please use the correct M-Pesa SMS.');
-    return;
-  }
+  //if(!msgLower.includes(tillLower)){
+  //  showMvErr('This message is not for our till. Please use the correct M-Pesa SMS.');
+  //  return;
+  //}
 
   // ── Check 2: amount present in multiple formats (same as B4A) ──
   const amountFound =
